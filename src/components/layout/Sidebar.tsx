@@ -8,8 +8,7 @@ import { createSupabaseBrowser } from '@/lib/db/supabase-browser'
 
 const baseNavItems = [
   { href: '/dashboard', label: 'Etusivu', icon: '🏠' },
-  { href: '/study/subjects', label: 'Oppiaineet', icon: '📖' },
-  { href: '/study/topics', label: 'Aiheet', icon: '📚' },
+  { href: '/study/subjects', label: 'Oppiaineet', icon: '📚' },
   { href: '/study/pomodoro', label: 'Pomodoro', icon: '🍅', visibility: 'show_pomodoro' },
   { href: '/study/review', label: 'Kertaus', icon: '🔄' },
   { href: '/study/feynman', label: 'Feynman', icon: '🧠', visibility: 'show_feynman' },
