@@ -1,0 +1,523 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+// ============================================
+// STUDENT PROFILES
+// ============================================
+model StudentProfile {
+  id                      String    @id @default(uuid()) @db.Uuid
+  authUserId              String    @unique @map("auth_user_id") @db.Uuid
+  displayName             String    @map("display_name")
+  email                   String?
+  examDate                DateTime? @map("exam_date") @db.Date
+  availableHoursPerWeek   Int       @default(10) @map("available_hours_per_week")
+  learningStylePreference String    @default("mixed") @map("learning_style_preference")
+  pomodoroFocusMin        Int       @default(25) @map("pomodoro_focus_min")
+  pomodoroBreakMin        Int       @default(5) @map("pomodoro_break_min")
+  pomodoroLongBreakMin    Int       @default(15) @map("pomodoro_long_break_min")
+  targetScore             Int       @default(70) @map("target_score")
+  onboardingCompleted     Boolean   @default(false) @map("onboarding_completed")
+  streakDays              Int       @default(0) @map("streak_days")
+  lastStudyDate           DateTime? @map("last_study_date") @db.Date
+  totalStudyHours         Decimal   @default(0) @map("total_study_hours") @db.Decimal(8, 2)
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt               DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  examAttempts        ExamAttempt[]
+  questionResponses   QuestionResponse[]
+  topicScores         UserTopicScore[]
+  studyPlans          StudyPlan[]
+  dailySessions       DailySession[]
+  pomodoroSessions    PomodoroSession[]
+  spacedRepCards      SpacedRepetitionCard[]
+  feynmanAttempts     FeynmanAttempt[]
+  conversations       Conversation[]
+  forumThreads        ForumThread[]
+  forumPosts          ForumPost[]
+  forumUpvotes        ForumUpvote[]
+  achievements        StudentAchievement[]
+
+  @@map("student_profiles")
+}
+
+// ============================================
+// TOPICS
+// ============================================
+model Topic {
+  id                 String   @id
+  area               String
+  nameFi             String   @map("name_fi")
+  nameEn             String   @map("name_en")
+  descriptionFi      String?  @map("description_fi")
+  examWeight         Decimal  @default(0) @map("exam_weight") @db.Decimal(4, 2)
+  difficultyLevel    String   @default("medium") @map("difficulty_level")
+  prerequisiteTopics String[] @map("prerequisite_topics")
+  videoPriority      Boolean  @default(false) @map("video_priority")
+  feynmanPromptFi    String?  @map("feynman_prompt_fi")
+  estimatedStudyHours Decimal @default(2) @map("estimated_study_hours") @db.Decimal(4, 1)
+  sortOrder          Int      @default(0) @map("sort_order")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  questions        Question[]
+  topicScores      UserTopicScore[]
+  pomodoroSessions PomodoroSession[]
+  spacedRepCards   SpacedRepetitionCard[]
+  feynmanAttempts  FeynmanAttempt[]
+  conversations    Conversation[]
+  forumThreads     ForumThread[]
+  videoContent     VideoContent[]
+  summaries        ContentSummary[]
+
+  @@map("topics")
+}
+
+// ============================================
+// QUESTIONS
+// ============================================
+model Question {
+  id                       String   @id @default(uuid()) @db.Uuid
+  topicId                  String   @map("topic_id")
+  type                     String
+  difficulty               String
+  content                  Json
+  metadata                 Json     @default("{}")
+  rubric                   Json?
+  learningTechnique        String?  @map("learning_technique")
+  spacedRepetitionSuitable Boolean  @default(false) @map("spaced_repetition_suitable")
+  timesUsed                Int      @default(0) @map("times_used")
+  avgScore                 Decimal? @map("avg_score") @db.Decimal(5, 2)
+  isActive                 Boolean  @default(true) @map("is_active")
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  topic     Topic              @relation(fields: [topicId], references: [id])
+  responses QuestionResponse[]
+  srCards   SpacedRepetitionCard[]
+
+  @@index([topicId])
+  @@index([type])
+  @@index([difficulty])
+  @@map("questions")
+}
+
+// ============================================
+// PRACTICE EXAMS
+// ============================================
+model PracticeExam {
+  id                     String   @id @default(uuid()) @db.Uuid
+  titleFi                String   @map("title_fi")
+  titleEn                String?  @map("title_en")
+  descriptionFi          String?  @map("description_fi")
+  questionIds            String[] @map("question_ids") @db.Uuid
+  timeLimitMinutes       Int      @default(180) @map("time_limit_minutes")
+  totalQuestions          Int      @default(40) @map("total_questions")
+  topicDistribution      Json?    @map("topic_distribution")
+  difficultyDistribution Json?    @map("difficulty_distribution")
+  isActive               Boolean  @default(true) @map("is_active")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  attempts ExamAttempt[]
+
+  @@map("practice_exams")
+}
+
+// ============================================
+// EXAM ATTEMPTS
+// ============================================
+model ExamAttempt {
+  id              String    @id @default(uuid()) @db.Uuid
+  studentId       String    @map("student_id") @db.Uuid
+  practiceExamId  String?   @map("practice_exam_id") @db.Uuid
+  isPracticeExam  Boolean   @default(true) @map("is_practice_exam")
+  status          String    @default("in_progress")
+  startedAt       DateTime  @default(now()) @map("started_at") @db.Timestamptz()
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz()
+  timeUsedMinutes Int?      @map("time_used_minutes")
+  totalScore      Decimal?  @map("total_score") @db.Decimal(6, 2)
+  maxScore        Decimal?  @map("max_score") @db.Decimal(6, 2)
+  percentage      Decimal?  @db.Decimal(5, 2)
+  topicScores     Json?     @map("topic_scores")
+  strongestTopics String[]  @map("strongest_topics")
+  weakestTopics   String[]  @map("weakest_topics")
+  feedback        Json?
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  student      StudentProfile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  practiceExam PracticeExam?      @relation(fields: [practiceExamId], references: [id])
+  responses    QuestionResponse[]
+
+  @@index([studentId])
+  @@map("exam_attempts")
+}
+
+// ============================================
+// QUESTION RESPONSES
+// ============================================
+model QuestionResponse {
+  id              String   @id @default(uuid()) @db.Uuid
+  studentId       String   @map("student_id") @db.Uuid
+  questionId      String   @map("question_id") @db.Uuid
+  examAttemptId   String?  @map("exam_attempt_id") @db.Uuid
+  answer          Json
+  isCorrect       Boolean?  @map("is_correct")
+  score           Decimal? @db.Decimal(5, 2)
+  maxScore        Decimal? @map("max_score") @db.Decimal(5, 2)
+  feedback        Json?
+  timeSpentSeconds Int?    @map("time_spent_seconds")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question    Question       @relation(fields: [questionId], references: [id])
+  examAttempt ExamAttempt?   @relation(fields: [examAttemptId], references: [id])
+
+  @@index([studentId])
+  @@index([questionId])
+  @@map("question_responses")
+}
+
+// ============================================
+// USER TOPIC SCORES
+// ============================================
+model UserTopicScore {
+  id                 String    @id @default(uuid()) @db.Uuid
+  studentId          String    @map("student_id") @db.Uuid
+  topicId            String    @map("topic_id")
+  currentScore       Decimal   @default(0) @map("current_score") @db.Decimal(5, 2)
+  questionsAttempted Int       @default(0) @map("questions_attempted")
+  questionsCorrect   Int       @default(0) @map("questions_correct")
+  lastStudiedAt      DateTime? @map("last_studied_at") @db.Timestamptz()
+  masteryLevel       String    @default("not_started") @map("mastery_level")
+  feynmanBestScore   Decimal?  @map("feynman_best_score") @db.Decimal(5, 2)
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic   Topic          @relation(fields: [topicId], references: [id])
+
+  @@unique([studentId, topicId])
+  @@index([studentId])
+  @@map("user_topic_scores")
+}
+
+// ============================================
+// STUDY PLANS
+// ============================================
+model StudyPlan {
+  id                String   @id @default(uuid()) @db.Uuid
+  studentId         String   @map("student_id") @db.Uuid
+  examDate          DateTime @map("exam_date") @db.Date
+  isActive          Boolean  @default(true) @map("is_active")
+  planData          Json     @map("plan_data")
+  totalPlannedHours Decimal? @map("total_planned_hours") @db.Decimal(6, 1)
+  weeksUntilExam    Int?     @map("weeks_until_exam")
+  adjustmentHistory Json     @default("[]") @map("adjustment_history")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  student       StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  dailySessions DailySession[]
+
+  @@index([studentId])
+  @@map("study_plans")
+}
+
+// ============================================
+// DAILY SESSIONS
+// ============================================
+model DailySession {
+  id                        String   @id @default(uuid()) @db.Uuid
+  studentId                 String   @map("student_id") @db.Uuid
+  studyPlanId               String?  @map("study_plan_id") @db.Uuid
+  sessionDate               DateTime @map("session_date") @db.Date
+  plannedTopics             String[] @map("planned_topics")
+  completedTopics           String[] @map("completed_topics")
+  plannedPomodoros          Int      @default(0) @map("planned_pomodoros")
+  completedPomodoros        Int      @default(0) @map("completed_pomodoros")
+  plannedHours              Decimal? @map("planned_hours") @db.Decimal(4, 1)
+  actualHours               Decimal  @default(0) @map("actual_hours") @db.Decimal(4, 1)
+  spacedRepetitionItemsDue  Int      @default(0) @map("spaced_repetition_items_due")
+  spacedRepetitionItemsDone Int      @default(0) @map("spaced_repetition_items_done")
+  feynmanSessionsPlanned    Int      @default(0) @map("feynman_sessions_planned")
+  feynmanSessionsDone       Int      @default(0) @map("feynman_sessions_done")
+  notes                     String?
+  createdAt                 DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  student          StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studyPlan        StudyPlan?        @relation(fields: [studyPlanId], references: [id])
+  pomodoroSessions PomodoroSession[]
+
+  @@index([studentId, sessionDate])
+  @@map("daily_sessions")
+}
+
+// ============================================
+// POMODORO SESSIONS
+// ============================================
+model PomodoroSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  studentId        String    @map("student_id") @db.Uuid
+  dailySessionId   String?   @map("daily_session_id") @db.Uuid
+  topicId          String?   @map("topic_id")
+  sessionNumber    Int       @default(1) @map("session_number")
+  format           String?
+  focusDurationMin Int       @default(25) @map("focus_duration_min")
+  breakDurationMin Int       @default(5) @map("break_duration_min")
+  status           String    @default("planned")
+  startedAt        DateTime? @map("started_at") @db.Timestamptz()
+  completedAt      DateTime? @map("completed_at") @db.Timestamptz()
+  distractionCount Int       @default(0) @map("distraction_count")
+  notes            String?
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  dailySession DailySession?  @relation(fields: [dailySessionId], references: [id])
+  topic        Topic?         @relation(fields: [topicId], references: [id])
+
+  @@index([studentId])
+  @@map("pomodoro_sessions")
+}
+
+// ============================================
+// SPACED REPETITION (SM-2)
+// ============================================
+model SpacedRepetitionCard {
+  id               String    @id @default(uuid()) @db.Uuid
+  studentId        String    @map("student_id") @db.Uuid
+  topicId          String    @map("topic_id")
+  questionId       String?   @map("question_id") @db.Uuid
+  cardType         String    @default("flashcard") @map("card_type")
+  frontFi          String?   @map("front_fi")
+  backFi           String?   @map("back_fi")
+  easinessFactor   Decimal   @default(2.5) @map("easiness_factor") @db.Decimal(4, 2)
+  intervalDays     Int       @default(1) @map("interval_days")
+  repetitionNumber Int       @default(0) @map("repetition_number")
+  nextReviewDate   DateTime  @map("next_review_date") @db.Date
+  lastReviewDate   DateTime? @map("last_review_date") @db.Date
+  lastQuality      Int?      @map("last_quality")
+  totalReviews     Int       @default(0) @map("total_reviews")
+  correctReviews   Int       @default(0) @map("correct_reviews")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  student  StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic    Topic          @relation(fields: [topicId], references: [id])
+  question Question?      @relation(fields: [questionId], references: [id])
+
+  @@index([studentId, nextReviewDate])
+  @@map("spaced_repetition_cards")
+}
+
+// ============================================
+// FEYNMAN ATTEMPTS
+// ============================================
+model FeynmanAttempt {
+  id                String   @id @default(uuid()) @db.Uuid
+  studentId         String   @map("student_id") @db.Uuid
+  topicId           String   @map("topic_id")
+  explanationText   String   @map("explanation_text")
+  accuracyScore     Decimal? @map("accuracy_score") @db.Decimal(5, 2)
+  completenessScore Decimal? @map("completeness_score") @db.Decimal(5, 2)
+  clarityScore      Decimal? @map("clarity_score") @db.Decimal(5, 2)
+  overallScore      Decimal? @map("overall_score") @db.Decimal(5, 2)
+  correctPoints     Json?    @map("correct_points")
+  missingPoints     Json?    @map("missing_points")
+  incorrectPoints   Json?    @map("incorrect_points")
+  feedbackFi        String?  @map("feedback_fi")
+  attemptNumber     Int      @default(1) @map("attempt_number")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic   Topic          @relation(fields: [topicId], references: [id])
+
+  @@index([studentId, topicId])
+  @@map("feynman_attempts")
+}
+
+// ============================================
+// CONVERSATIONS
+// ============================================
+model Conversation {
+  id           String   @id @default(uuid()) @db.Uuid
+  studentId    String   @map("student_id") @db.Uuid
+  agentType    String   @map("agent_type")
+  learningMode String   @default("general") @map("learning_mode")
+  topicId      String?  @map("topic_id")
+  titleFi      String?  @map("title_fi")
+  isActive     Boolean  @default(true) @map("is_active")
+  messageCount Int      @default(0) @map("message_count")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  student  StudentProfile        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topic    Topic?                @relation(fields: [topicId], references: [id])
+  messages ConversationMessage[]
+
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String   @id @default(uuid()) @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  role           String
+  content        String
+  metadata       Json     @default("{}")
+  tokenCount     Int?     @map("token_count")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("conversation_messages")
+}
+
+// ============================================
+// FORUM
+// ============================================
+model ForumCategory {
+  id            String   @id @default(uuid()) @db.Uuid
+  nameFi        String   @map("name_fi")
+  slug          String   @unique
+  descriptionFi String?  @map("description_fi")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  threads ForumThread[]
+
+  @@map("forum_categories")
+}
+
+model ForumThread {
+  id          String    @id @default(uuid()) @db.Uuid
+  categoryId  String    @map("category_id") @db.Uuid
+  authorId    String    @map("author_id") @db.Uuid
+  title       String
+  content     String
+  topicId     String?   @map("topic_id")
+  isPinned    Boolean   @default(false) @map("is_pinned")
+  isLocked    Boolean   @default(false) @map("is_locked")
+  isModerated Boolean   @default(false) @map("is_moderated")
+  viewCount   Int       @default(0) @map("view_count")
+  replyCount  Int       @default(0) @map("reply_count")
+  lastReplyAt DateTime? @map("last_reply_at") @db.Timestamptz()
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  category ForumCategory  @relation(fields: [categoryId], references: [id])
+  author   StudentProfile @relation(fields: [authorId], references: [id])
+  topic    Topic?         @relation(fields: [topicId], references: [id])
+  posts    ForumPost[]
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@map("forum_threads")
+}
+
+model ForumPost {
+  id          String   @id @default(uuid()) @db.Uuid
+  threadId    String   @map("thread_id") @db.Uuid
+  authorId    String   @map("author_id") @db.Uuid
+  content     String
+  isSolution  Boolean  @default(false) @map("is_solution")
+  isModerated Boolean  @default(false) @map("is_moderated")
+  upvoteCount Int      @default(0) @map("upvote_count")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  thread  ForumThread    @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author  StudentProfile @relation(fields: [authorId], references: [id])
+  upvotes ForumUpvote[]
+
+  @@index([threadId])
+  @@map("forum_posts")
+}
+
+model ForumUpvote {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  post ForumPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user StudentProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("forum_upvotes")
+}
+
+// ============================================
+// VIDEO CONTENT
+// ============================================
+model VideoContent {
+  id              String   @id @default(uuid()) @db.Uuid
+  topicId         String   @map("topic_id")
+  titleFi         String   @map("title_fi")
+  titleEn         String?  @map("title_en")
+  descriptionFi   String?  @map("description_fi")
+  videoUrl        String?  @map("video_url")
+  durationSeconds Int?     @map("duration_seconds")
+  thumbnailUrl    String?  @map("thumbnail_url")
+  transcriptFi    String?  @map("transcript_fi")
+  sortOrder       Int      @default(0) @map("sort_order")
+  isPublished     Boolean  @default(false) @map("is_published")
+  viewCount       Int      @default(0) @map("view_count")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  topic Topic @relation(fields: [topicId], references: [id])
+
+  @@index([topicId])
+  @@map("video_content")
+}
+
+// ============================================
+// CONTENT SUMMARIES
+// ============================================
+model ContentSummary {
+  id        String   @id @default(uuid()) @db.Uuid
+  topicId   String   @map("topic_id")
+  type      String
+  content   Json
+  scope     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz()
+
+  topic Topic @relation(fields: [topicId], references: [id])
+
+  @@index([topicId, type])
+  @@map("content_summaries")
+}
+
+// ============================================
+// ACHIEVEMENTS
+// ============================================
+model Achievement {
+  id            String   @id @default(uuid()) @db.Uuid
+  code          String   @unique
+  nameFi        String   @map("name_fi")
+  descriptionFi String   @map("description_fi")
+  icon          String?
+  category      String?
+  criteria      Json
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  students StudentAchievement[]
+
+  @@map("achievements")
+}
+
+model StudentAchievement {
+  id            String   @id @default(uuid()) @db.Uuid
+  studentId     String   @map("student_id") @db.Uuid
+  achievementId String   @map("achievement_id") @db.Uuid
+  unlockedAt    DateTime @default(now()) @map("unlocked_at") @db.Timestamptz()
+
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievement Achievement    @relation(fields: [achievementId], references: [id])
+
+  @@unique([studentId, achievementId])
+  @@map("student_achievements")
+}
