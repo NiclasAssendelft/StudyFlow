@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/db/supabase-browser';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 interface AreaCard {
   slug: string;
@@ -13,11 +14,19 @@ interface AreaCard {
   progress: number;
 }
 
+const areaConfig: Record<string, { fi: string; sv: string; icon: string; color: string }> = {
+  microeconomics: { fi: 'Mikrotaloustiede', sv: 'Mikroekonomi', icon: '📈', color: '#2563eb' },
+  macroeconomics: { fi: 'Makrotaloustiede', sv: 'Makroekonomi', icon: '🌍', color: '#7c3aed' },
+  statistics: { fi: 'Tilastotiede', sv: 'Statistik', icon: '📊', color: '#059669' },
+  business: { fi: 'Liiketalous', sv: 'Företagsekonomi', icon: '💼', color: '#d97706' },
+};
+
 export default function SubjectsPage() {
+  const { lang, t, loading: langLoading } = useLanguage();
   const [areas, setAreas] = useState<AreaCard[]>([
     {
       slug: 'microeconomics',
-      label: 'Mikrotaloustiede',
+      label: areaConfig.microeconomics[lang as 'fi' | 'sv'],
       icon: '📈',
       color: '#2563eb',
       topicCount: 7,
@@ -25,7 +34,7 @@ export default function SubjectsPage() {
     },
     {
       slug: 'macroeconomics',
-      label: 'Makrotaloustiede',
+      label: areaConfig.macroeconomics[lang as 'fi' | 'sv'],
       icon: '🌍',
       color: '#7c3aed',
       topicCount: 7,
@@ -33,7 +42,7 @@ export default function SubjectsPage() {
     },
     {
       slug: 'statistics',
-      label: 'Tilastotiede',
+      label: areaConfig.statistics[lang as 'fi' | 'sv'],
       icon: '📊',
       color: '#059669',
       topicCount: 7,
@@ -41,7 +50,7 @@ export default function SubjectsPage() {
     },
     {
       slug: 'business',
-      label: 'Liiketalous',
+      label: areaConfig.business[lang as 'fi' | 'sv'],
       icon: '💼',
       color: '#d97706',
       topicCount: 6,
@@ -120,17 +129,28 @@ export default function SubjectsPage() {
     fetchProgress();
   }, []);
 
+  useEffect(() => {
+    if (lang) {
+      setAreas((prevAreas) =>
+        prevAreas.map((area) => ({
+          ...area,
+          label: areaConfig[area.slug][lang as 'fi' | 'sv'],
+        }))
+      );
+    }
+  }, [lang]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Oppiaineet</h1>
-          <p className="text-lg text-slate-600">Valitse oppiaine aloittaaksesi opiskelun</p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">{t('subjects')}</h1>
+          <p className="text-lg text-slate-600">{t('selectSubjectToStart')}</p>
         </div>
 
-        {loading ? (
+        {loading || langLoading ? (
           <div className="text-center py-12">
-            <p className="text-slate-600">Ladataan...</p>
+            <p className="text-slate-600">{t('loading')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -146,14 +166,14 @@ export default function SubjectsPage() {
                       className="text-sm font-semibold px-3 py-1 rounded-full text-white"
                       style={{ backgroundColor: area.color }}
                     >
-                      {area.progress}%
+                      {t('progress')}: {area.progress}%
                     </span>
                   </div>
 
                   <h2 className="text-2xl font-bold text-slate-900 mb-2">
                     {area.label}
                   </h2>
-                  <p className="text-slate-600 mb-6">{area.topicCount} aihetta</p>
+                  <p className="text-slate-600 mb-6">{area.topicCount} {t('topics')}</p>
 
                   <div className="w-full bg-slate-200 rounded-full h-2">
                     <div

@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { createSupabaseBrowser } from '@/lib/db/supabase-browser'
 
-type Step = 'exam_date' | 'hours' | 'learning_style' | 'target' | 'done'
+type Step = 'language' | 'exam_date' | 'hours' | 'learning_style' | 'target' | 'done'
 
 export default function OnboardingPage() {
-  const [step, setStep] = useState<Step>('exam_date')
+  const [step, setStep] = useState<Step>('language')
+  const [language, setLanguage] = useState('fi')
   const [examDate, setExamDate] = useState('')
   const [hoursPerWeek, setHoursPerWeek] = useState(10)
   const [learningStyle, setLearningStyle] = useState('mixed')
@@ -22,6 +23,7 @@ export default function OnboardingPage() {
       await supabase
         .from('student_profiles')
         .update({
+          language_preference: language,
           exam_date: examDate || null,
           available_hours_per_week: hoursPerWeek,
           learning_style_preference: learningStyle,
@@ -39,11 +41,11 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         {/* Progress dots */}
         <div className="flex justify-center gap-2 mb-8">
-          {['exam_date', 'hours', 'learning_style', 'target'].map((s, i) => (
+          {['language', 'exam_date', 'hours', 'learning_style', 'target'].map((s, i) => (
             <div
               key={s}
               className={`w-2.5 h-2.5 rounded-full ${
-                ['exam_date', 'hours', 'learning_style', 'target'].indexOf(step) >= i
+                ['language', 'exam_date', 'hours', 'learning_style', 'target'].indexOf(step) >= i
                   ? 'bg-brand-600'
                   : 'bg-gray-300'
               }`}
@@ -52,6 +54,41 @@ export default function OnboardingPage() {
         </div>
 
         <div className="bg-white rounded-xl border p-8">
+          {step === 'language' && (
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Valitse kieli / Välj språk</h2>
+              <p className="text-gray-600 text-sm mb-6">
+                Valitse opiskelukielesi. Du kan ändra detta senare.
+              </p>
+              <div className="flex gap-4 mb-6">
+                {[
+                  { value: 'fi', label: 'Suomi', flag: '🇫🇮', desc: 'Opiskele suomeksi' },
+                  { value: 'sv', label: 'Svenska', flag: '🇸🇪', desc: 'Studera på svenska' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setLanguage(opt.value)}
+                    className={`flex-1 p-6 rounded-lg border-2 transition-colors text-center ${
+                      language === opt.value
+                        ? 'border-brand-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-4xl block mb-2">{opt.flag}</span>
+                    <div className="font-medium">{opt.label}</div>
+                    <div className="text-xs text-gray-500 mt-1">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setStep('exam_date')}
+                className="w-full bg-brand-600 text-white py-2.5 rounded-lg font-medium hover:bg-brand-700"
+              >
+                Seuraava / Nästa
+              </button>
+            </div>
+          )}
+
           {step === 'exam_date' && (
             <div>
               <h2 className="text-xl font-semibold mb-2">Milloin kokeesi on?</h2>
@@ -66,12 +103,20 @@ export default function OnboardingPage() {
                 min={new Date().toISOString().split('T')[0]}
               />
               <p className="text-xs text-gray-400 mb-6">Voit jättää tämän tyhjäksi jos et tiedä vielä.</p>
-              <button
-                onClick={() => setStep('hours')}
-                className="w-full bg-brand-600 text-white py-2.5 rounded-lg font-medium hover:bg-brand-700"
-              >
-                Seuraava
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep('language')}
+                  className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50"
+                >
+                  Takaisin
+                </button>
+                <button
+                  onClick={() => setStep('hours')}
+                  className="flex-1 bg-brand-600 text-white py-2.5 rounded-lg font-medium hover:bg-brand-700"
+                >
+                  Seuraava
+                </button>
+              </div>
             </div>
           )}
 

@@ -5,21 +5,23 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils/cn'
 import { createSupabaseBrowser } from '@/lib/db/supabase-browser'
+import { useLanguage } from '@/lib/i18n/useLanguage'
 
 const baseNavItems = [
-  { href: '/dashboard', label: 'Etusivu', icon: '🏠' },
-  { href: '/study/subjects', label: 'Oppiaineet', icon: '📚' },
-  { href: '/study/pomodoro', label: 'Pomodoro', icon: '🍅', visibility: 'show_pomodoro' },
-  { href: '/study/review', label: 'Kertaus', icon: '🔄' },
-  { href: '/study/feynman', label: 'Feynman', icon: '🧠', visibility: 'show_feynman' },
-  { href: '/study/exam', label: 'Harjoituskoe', icon: '📝' },
-  { href: '/study/plan', label: 'Opiskelusuunnitelma', icon: '📅' },
-  { href: '/chat', label: 'Tuutori', icon: '🤖' },
-  { href: '/forum', label: 'Foorumi', icon: '💬' },
+  { href: '/dashboard', labelKey: 'home' as const, icon: '🏠' },
+  { href: '/study/subjects', labelKey: 'subjects' as const, icon: '📚' },
+  { href: '/study/pomodoro', labelKey: 'pomodoro' as const, icon: '🍅', visibility: 'show_pomodoro' },
+  { href: '/study/review', labelKey: 'review' as const, icon: '🔄' },
+  { href: '/study/feynman', labelKey: 'feynman' as const, icon: '🧠', visibility: 'show_feynman' },
+  { href: '/study/exam', labelKey: 'exam' as const, icon: '📝' },
+  { href: '/study/plan', labelKey: 'plan' as const, icon: '📅' },
+  { href: '/chat', labelKey: 'tutor' as const, icon: '🤖' },
+  { href: '/forum', labelKey: 'forum' as const, icon: '💬' },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { t } = useLanguage()
   const [collapsed, setCollapsed] = useState(false)
   const [navItems, setNavItems] = useState(baseNavItems)
   const [loading, setLoading] = useState(true)
@@ -38,7 +40,7 @@ export function Sidebar() {
         const { data: profile } = await supabase
           .from('student_profiles')
           .select('show_pomodoro, show_feynman')
-          .eq('user_id', user.id)
+          .eq('auth_user_id', user.id)
           .single()
 
         if (profile) {
@@ -98,10 +100,10 @@ export function Sidebar() {
                   ? 'bg-blue-50 text-brand-700 font-medium'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? t(item.labelKey) : undefined}
             >
               <span className="text-lg flex-shrink-0">{item.icon}</span>
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed && <span>{t(item.labelKey)}</span>}
             </Link>
           )
         })}
@@ -117,7 +119,7 @@ export function Sidebar() {
           )}
         >
           <span className="text-lg">⚙️</span>
-          {!collapsed && <span>Asetukset</span>}
+          {!collapsed && <span>{t('settings')}</span>}
         </Link>
       </div>
     </aside>

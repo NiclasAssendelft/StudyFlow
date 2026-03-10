@@ -1,16 +1,6 @@
 import { NextRequest } from 'next/server'
-import { routeMessage, callAgent } from '@/lib/agents/router'
+import { routeMessage, callAgent, buildTutorSystemPrompt } from '@/lib/agents/router'
 import { createSupabaseServer } from '@/lib/db/supabase-server'
-
-// System prompts for each agent (loaded from DB or files in production)
-// For now, using inline — these match the system-prompts-v2 files
-const TUTOR_SYSTEM = `You are a personal AI tutor on a Finnish university entry exam learning platform. You help students prepare for Valintakoe F — the business/kauppatiede entrance exam.
-
-Language: Finnish by default. Clear, everyday Finnish. Economics terms: give both languages on first use: "BKT (bruttokansantuote, eng. GDP)". Math in LaTeX.
-
-Teaching: Patient, encouraging. Explain at the right level based on student's score. Use Finnish examples (S-market, K-market, EKP, Nokia). Always end with a check question.
-
-Keep responses 100-300 words. Short paragraphs (2-3 sentences).`
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,16 +13,28 @@ export async function POST(request: NextRequest) {
 
     const { message, conversationId, context } = await request.json()
 
+    // Fetch student profile for tutor intensity and language preference
+    const { data: profile } = await supabase
+      .from('student_profiles')
+      .select('tutor_intensity, language_preference')
+      .eq('auth_user_id', user.id)
+      .single()
+
+    const intensity = (profile?.tutor_intensity || 'balanced') as 'strict' | 'balanced' | 'gentle'
+    const language = (profile?.language_preference || 'fi') as 'fi' | 'sv'
+
     // Route the message to the right agent
     const route = await routeMessage(message, context)
 
-    // Get system prompt based on agent
-    const systemPrompts: Record<string, string> = {
-      tutor: TUTOR_SYSTEM,
-      // Other agents would have their prompts here
-    }
+    // Get system prompt based on agent and student preferences
+    let systemPrompt: string
 
-    const systemPrompt = systemPrompts[route.agent] || TUTOR_SYSTEM
+    if (route.agent === 'tutor') {
+      systemPrompt = buildTutorSystemPrompt(intensity, language, context?.topicName)
+    } else {
+      // Other agents would have their prompts here
+      systemPrompt = buildTutorSystemPrompt(intensity, language, context?.topicName)
+    }
 
     // Get conversation history if continuing
     let messages: Array<{ role: 'user' | 'assistant'; content: string }> = []

@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/db/supabase-browser';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 interface Topic {
   id: string;
   name_fi: string;
+  name_sv?: string;
   color: string;
   icon: string;
   lessonCount: number;
@@ -17,25 +19,29 @@ interface Topic {
 
 const areaConfig = {
   microeconomics: {
-    label: 'Mikrotaloustiede',
+    fi: 'Mikrotaloustiede',
+    sv: 'Mikroekonomi',
     icon: '📈',
     color: '#2563eb',
     prefix: '1.',
   },
   macroeconomics: {
-    label: 'Makrotaloustiede',
+    fi: 'Makrotaloustiede',
+    sv: 'Makroekonomi',
     icon: '🌍',
     color: '#7c3aed',
     prefix: '2.',
   },
   statistics: {
-    label: 'Tilastotiede',
+    fi: 'Tilastotiede',
+    sv: 'Statistik',
     icon: '📊',
     color: '#059669',
     prefix: '3.',
   },
   business: {
-    label: 'Liiketalous',
+    fi: 'Liiketalous',
+    sv: 'Företagsekonomi',
     icon: '💼',
     color: '#d97706',
     prefix: '4.',
@@ -46,6 +52,7 @@ export default function AreaPage() {
   const params = useParams();
   const router = useRouter();
   const area = params.area as string;
+  const { lang, t, loading: langLoading } = useLanguage();
 
   const config = areaConfig[area as keyof typeof areaConfig];
 
@@ -66,7 +73,7 @@ export default function AreaPage() {
         // Fetch all topics for this area
         const { data: topicsData } = await supabase
           .from('topics')
-          .select('id, name_fi, area')
+          .select('id, name_fi, name_sv, area')
           .eq('area', area)
           .order('id');
 
@@ -115,6 +122,7 @@ export default function AreaPage() {
           return {
             id: topic.id,
             name_fi: topic.name_fi,
+            name_sv: topic.name_sv,
             color: config.color,
             icon: config.icon,
             lessonCount: topicLessons.length,
@@ -132,7 +140,7 @@ export default function AreaPage() {
     };
 
     fetchTopics();
-  }, [area, config, router]);
+  }, [area, config, router, lang]);
 
   if (!config) {
     return null;
@@ -147,20 +155,20 @@ export default function AreaPage() {
             href="/study/subjects"
             className="text-sm font-medium text-slate-600 hover:text-slate-900 mb-4 inline-block"
           >
-            ← Takaisin oppiaineihin
+            ← {t('backToSubjects')}
           </Link>
           <div className="flex items-center gap-4">
             <span className="text-5xl">{config.icon}</span>
             <div>
-              <h1 className="text-4xl font-bold text-slate-900">{config.label}</h1>
-              <p className="text-slate-600">{topics.length} aihetta</p>
+              <h1 className="text-4xl font-bold text-slate-900">{config[lang as 'fi' | 'sv']}</h1>
+              <p className="text-slate-600">{topics.length} {t('topics')}</p>
             </div>
           </div>
         </div>
 
-        {loading ? (
+        {loading || langLoading ? (
           <div className="text-center py-12">
-            <p className="text-slate-600">Ladataan...</p>
+            <p className="text-slate-600">{t('loading')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
@@ -181,11 +189,11 @@ export default function AreaPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                          {topic.id}. {topic.name_fi}
+                          {topic.id}. {lang === 'sv' && topic.name_sv ? topic.name_sv : topic.name_fi}
                         </h3>
                         <div className="flex gap-6 text-sm text-slate-600">
-                          <span>📚 {topic.lessonCount} oppituntia</span>
-                          <span>❓ {topic.questionCount} kysymystä</span>
+                          <span>📚 {topic.lessonCount} {t('lessons')}</span>
+                          <span>❓ {topic.questionCount} {t('questions')}</span>
                         </div>
                       </div>
                       <span

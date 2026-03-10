@@ -10,6 +10,8 @@ export default function SettingsPage() {
   const [showFeynman, setShowFeynman] = useState(true)
   const [targetScore, setTargetScore] = useState(70)
   const [hoursPerWeek, setHoursPerWeek] = useState(10)
+  const [language, setLanguage] = useState('fi')
+  const [tutorIntensity, setTutorIntensity] = useState('balanced')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -27,6 +29,8 @@ export default function SettingsPage() {
           setShowFeynman(profile.show_feynman !== false)
           setTargetScore(profile.target_score || 70)
           setHoursPerWeek(profile.available_hours_per_week || 10)
+          setLanguage(profile.language_preference || 'fi')
+          setTutorIntensity(profile.tutor_intensity || 'balanced')
         }
       } catch (error) {
         console.error('Error fetching profile:', error)
@@ -52,6 +56,8 @@ export default function SettingsPage() {
           show_feynman: showFeynman,
           target_score: targetScore,
           available_hours_per_week: hoursPerWeek,
+          language_preference: language,
+          tutor_intensity: tutorIntensity,
         }),
       })
       setSaved(true)
@@ -63,6 +69,30 @@ export default function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Asetukset</h1>
+
+      {/* Language settings */}
+      <section className="bg-white border rounded-xl p-6 mb-6">
+        <h2 className="font-semibold text-lg mb-4">Kieli / Språk</h2>
+        <div className="flex gap-4">
+          {[
+            { value: 'fi', label: 'Suomi', flag: '🇫🇮' },
+            { value: 'sv', label: 'Svenska', flag: '🇸🇪' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setLanguage(opt.value)}
+              className={`flex-1 p-4 rounded-lg border-2 transition-colors text-center ${
+                language === opt.value
+                  ? 'border-brand-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <span className="text-3xl block mb-1">{opt.flag}</span>
+              <span className="font-medium text-sm">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Visibility settings */}
       <section className="bg-white border rounded-xl p-6 mb-6">
@@ -92,6 +122,36 @@ export default function SettingsPage() {
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
             </label>
           </div>
+        </div>
+      </section>
+
+      {/* Tutor intensity settings */}
+      <section className="bg-white border rounded-xl p-6 mb-6">
+        <h2 className="font-semibold text-lg mb-4">Tuutorin tyyli</h2>
+        <div className="space-y-3">
+          {[
+            { value: 'strict', label: 'Tiukka', desc: 'Vaativa mentori, haastaa oletuksiasi, odottaa tarkkuutta', icon: '🎯' },
+            { value: 'balanced', label: 'Tasapainoinen', desc: 'Auttava mutta vaatii ymmärrystä, sopiva rohkaisu', icon: '⚖️' },
+            { value: 'gentle', label: 'Lempeä', desc: 'Kärsivällinen, kannustava, selittää askel askeleelta', icon: '🌱' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setTutorIntensity(opt.value)}
+              className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
+                tutorIntensity === opt.value
+                  ? 'border-brand-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{opt.icon}</span>
+                <div>
+                  <div className="font-medium text-sm">{opt.label}</div>
+                  <div className="text-xs text-gray-500">{opt.desc}</div>
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </section>
 

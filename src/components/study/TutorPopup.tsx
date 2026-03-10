@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 interface TutorPopupProps {
   isOpen: boolean
   onClose: () => void
+  lang?: 'fi' | 'sv'
   context: {
     question: string
     studentAnswer: string
@@ -20,23 +21,45 @@ interface Message {
   content: string
 }
 
-export function TutorPopup({ isOpen, onClose, context }: TutorPopupProps) {
+export function TutorPopup({ isOpen, onClose, lang = 'fi', context }: TutorPopupProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [userInput, setUserInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  // Language-specific strings
+  const labels = {
+    fi: {
+      title: 'Tekoälytuutori',
+      placeholder: 'Kirjoita kysymys...',
+      send: 'Lähetä',
+      close: 'Sulje',
+    },
+    sv: {
+      title: 'Handledare',
+      placeholder: 'Skriv en fråga...',
+      send: 'Skicka',
+      close: 'Stäng',
+    },
+  }
+
+  const t = labels[lang]
+
   // Initialize with AI explanation on open
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      const initialContent = lang === 'fi'
+        ? `Analysoin vastaustasi aiheeseen "${context.topicName}".\n\nOikea vastaus oli: ${context.correctAnswer}\n\nSelitys: ${context.explanation}\n\nMikä sinulle jäi epäselväksi? Voin auttaa sinua ymmärtämään aihetta paremmin!`
+        : `Jag analyserar ditt svar om "${context.topicName}".\n\nRätt svar var: ${context.correctAnswer}\n\nFörklaring: ${context.explanation}\n\nVad är fortfarande oklart för dig? Jag kan hjälpa dig förstå ämnet bättre!`
+
       const initialMessage: Message = {
         id: '0',
         role: 'assistant',
-        content: `Analysoin vastaustasi aiheeseen "${context.topicName}".\n\nOikea vastaus oli: ${context.correctAnswer}\n\nSelitys: ${context.explanation}\n\nMikä sinulle jäi epäselväksi? Voin auttaa sinua ymmärtämään aihetta paremmin!`,
+        content: initialContent,
       }
       setMessages([initialMessage])
     }
-  }, [isOpen, context])
+  }, [isOpen, context, lang])
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -147,11 +170,11 @@ export function TutorPopup({ isOpen, onClose, context }: TutorPopupProps) {
       <div className="bg-white rounded-2xl w-full sm:w-96 max-h-[90vh] sm:max-h-[600px] flex flex-col shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Tekoälytuutori</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t.title}</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Sulje"
+            aria-label={t.close}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -205,7 +228,7 @@ export function TutorPopup({ isOpen, onClose, context }: TutorPopupProps) {
             type="text"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Kysy mitä tahansa..."
+            placeholder={t.placeholder}
             disabled={isLoading}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-gray-50 disabled:text-gray-500"
           />
@@ -214,7 +237,7 @@ export function TutorPopup({ isOpen, onClose, context }: TutorPopupProps) {
             disabled={isLoading || !userInput.trim()}
             className="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
           >
-            Lähetä
+            {t.send}
           </button>
         </form>
       </div>

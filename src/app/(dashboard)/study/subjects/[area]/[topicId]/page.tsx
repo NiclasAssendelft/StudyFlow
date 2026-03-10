@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/db/supabase-browser';
+import { useLanguage } from '@/lib/i18n/useLanguage';
 
 interface Lesson {
   id: string;
   title_fi: string;
+  title_sv?: string;
   estimated_minutes: number;
   video_url?: string;
   completed: boolean;
@@ -16,6 +18,7 @@ interface Lesson {
 interface TopicHeader {
   id: string;
   name_fi: string;
+  name_sv?: string;
   icon: string;
   color: string;
   label: string;
@@ -23,22 +26,26 @@ interface TopicHeader {
 
 const areaConfig = {
   microeconomics: {
-    label: 'Mikrotaloustiede',
+    fi: 'Mikrotaloustiede',
+    sv: 'Mikroekonomi',
     icon: '📈',
     color: '#2563eb',
   },
   macroeconomics: {
-    label: 'Makrotaloustiede',
+    fi: 'Makrotaloustiede',
+    sv: 'Makroekonomi',
     icon: '🌍',
     color: '#7c3aed',
   },
   statistics: {
-    label: 'Tilastotiede',
+    fi: 'Tilastotiede',
+    sv: 'Statistik',
     icon: '📊',
     color: '#059669',
   },
   business: {
-    label: 'Liiketalous',
+    fi: 'Liiketalous',
+    sv: 'Företagsekonomi',
     icon: '💼',
     color: '#d97706',
   },
@@ -49,6 +56,7 @@ export default function TopicPage() {
   const router = useRouter();
   const area = params.area as string;
   const topicId = params.topicId as string;
+  const { lang, t, loading: langLoading } = useLanguage();
 
   const config = areaConfig[area as keyof typeof areaConfig];
 
@@ -70,7 +78,7 @@ export default function TopicPage() {
         // Fetch topic
         const { data: topicData } = await supabase
           .from('topics')
-          .select('id, name_fi')
+          .select('id, name_fi, name_sv')
           .eq('id', topicId)
           .single();
 
@@ -82,15 +90,16 @@ export default function TopicPage() {
         setTopic({
           id: topicData.id,
           name_fi: topicData.name_fi,
+          name_sv: topicData.name_sv,
           icon: config.icon,
           color: config.color,
-          label: config.label,
+          label: config[lang as 'fi' | 'sv'],
         });
 
         // Fetch lessons for this topic
         const { data: lessonsData } = await supabase
           .from('lessons')
-          .select('id, title_fi, estimated_minutes, video_url')
+          .select('id, title_fi, title_sv, estimated_minutes, video_url')
           .eq('topic_id', topicId)
           .order('lesson_order');
 
@@ -118,6 +127,7 @@ export default function TopicPage() {
         const enrichedLessons: Lesson[] = lessonsData.map((lesson) => ({
           id: lesson.id,
           title_fi: lesson.title_fi,
+          title_sv: lesson.title_sv,
           estimated_minutes: lesson.estimated_minutes,
           video_url: lesson.video_url,
           completed: progressData.some((p) => p.lesson_id === lesson.id),
@@ -132,7 +142,7 @@ export default function TopicPage() {
     };
 
     fetchData();
-  }, [area, topicId, config, router]);
+  }, [area, topicId, config, router, lang]);
 
   if (!config || !topic) {
     return null;
@@ -147,19 +157,19 @@ export default function TopicPage() {
             href={`/study/subjects/${area}`}
             className="text-sm font-medium text-slate-600 hover:text-slate-900 mb-4 inline-block"
           >
-            ← Takaisin aiheisiin
+            ← {t('backToTopics')}
           </Link>
           <div>
             <h1 className="text-4xl font-bold text-slate-900 mb-2">
-              {topic.id}. {topic.name_fi}
+              {topic.id}. {lang === 'sv' && topic.name_sv ? topic.name_sv : topic.name_fi}
             </h1>
-            <p className="text-slate-600">{lessons.length} oppituntia</p>
+            <p className="text-slate-600">{lessons.length} {t('lessons')}</p>
           </div>
         </div>
 
-        {loading ? (
+        {loading || langLoading ? (
           <div className="text-center py-12">
-            <p className="text-slate-600">Ladataan...</p>
+            <p className="text-slate-600">{t('loading')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -186,14 +196,14 @@ export default function TopicPage() {
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="text-lg font-semibold text-slate-900">
-                          {index + 1}. {lesson.title_fi}
+                          {index + 1}. {lang === 'sv' && lesson.title_sv ? lesson.title_sv : lesson.title_fi}
                         </h3>
                         {lesson.completed && (
-                          <span className="text-green-600 text-sm font-medium">✓ Valmis</span>
+                          <span className="text-green-600 text-sm font-medium">✓ {t('completed')}</span>
                         )}
                       </div>
                       <p className="text-slate-600 text-sm">
-                        ⏱️ {lesson.estimated_minutes} minuuttia
+                        ⏱️ {lesson.estimated_minutes} {t('minutes')}
                       </p>
                     </div>
 

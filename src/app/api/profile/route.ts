@@ -44,6 +44,10 @@ export async function PATCH(request: NextRequest) {
     'pomodoro_break_min',
     'pomodoro_long_break_min',
     'target_score',
+    'show_pomodoro',
+    'show_feynman',
+    'tutor_intensity',
+    'language_preference',
   ]
 
   const safeUpdates: Record<string, unknown> = {}
