@@ -21,7 +21,7 @@ const baseNavItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { t } = useLanguage()
+  const { t, lang, setLang } = useLanguage()
   const [collapsed, setCollapsed] = useState(false)
   const [navItems, setNavItems] = useState(baseNavItems)
   const [loading, setLoading] = useState(true)
@@ -110,7 +110,19 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t p-3">
+      <div className="border-t p-3 space-y-1">
+        <button
+          onClick={() => setLang(lang === 'fi' ? 'sv' : 'fi')}
+          className="flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 w-full"
+          title={lang === 'fi' ? 'Byt till svenska' : 'Vaihda suomeksi'}
+        >
+          <span className="text-lg">{lang === 'fi' ? '🇫🇮' : '🇸🇪'}</span>
+          {!collapsed && (
+            <span className="font-medium">
+              {lang === 'fi' ? 'FI → SV' : 'SV → FI'}
+            </span>
+          )}
+        </button>
         <Link
           href="/settings"
           className={cn(

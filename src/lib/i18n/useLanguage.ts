@@ -34,9 +34,25 @@ export function useLanguage() {
     fetchLanguage()
   }, [])
 
+  const switchLang = useCallback(async (newLang: Language) => {
+    setLang(newLang)
+    try {
+      const supabase = createSupabaseBrowser()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase
+          .from('student_profiles')
+          .update({ language_preference: newLang })
+          .eq('auth_user_id', user.id)
+      }
+    } catch (error) {
+      console.error('Error updating language:', error)
+    }
+  }, [])
+
   const t = useCallback((key: TranslationKey): string => {
     return translations[lang][key] || translations.fi[key] || key
   }, [lang])
 
-  return { lang, t, loading }
+  return { lang, setLang: switchLang, t, loading }
 }
