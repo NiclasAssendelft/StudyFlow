@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useLanguage } from '@/lib/i18n/useLanguage'
 
 export default function SettingsPage() {
+  const { lang, setLang: setContextLang, t } = useLanguage()
   const [pomodoroFocus, setPomodoroFocus] = useState(25)
   const [pomodoroBreak, setPomodoroBreak] = useState(5)
   const [pomodoroLongBreak, setPomodoroLongBreak] = useState(15)
@@ -10,11 +12,16 @@ export default function SettingsPage() {
   const [showFeynman, setShowFeynman] = useState(true)
   const [targetScore, setTargetScore] = useState(70)
   const [hoursPerWeek, setHoursPerWeek] = useState(10)
-  const [language, setLanguage] = useState('fi')
+  const [language, setLanguage] = useState(lang)
   const [tutorIntensity, setTutorIntensity] = useState('balanced')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
+
+  // Keep local language state in sync with context
+  useEffect(() => {
+    setLanguage(lang)
+  }, [lang])
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -60,6 +67,10 @@ export default function SettingsPage() {
           tutor_intensity: tutorIntensity,
         }),
       })
+      // Sync language to shared context so entire app updates
+      if (language !== lang) {
+        await setContextLang(language as 'fi' | 'sv')
+      }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch {}
@@ -247,7 +258,7 @@ export default function SettingsPage() {
         disabled={saving}
         className="bg-brand-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50"
       >
-        {saving ? 'Tallennetaan...' : saved ? 'Tallennettu!' : 'Tallenna asetukset'}
+        {saving ? t('saving') : saved ? t('saved') : t('save')}
       </button>
     </div>
   )

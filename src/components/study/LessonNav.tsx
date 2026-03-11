@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import { useLanguage } from '@/lib/i18n/useLanguage'
 
 interface Lesson {
   id: string
   title_fi: string
+  title_sv?: string
   lesson_order: number
   completed?: boolean
 }
@@ -22,6 +24,7 @@ export function LessonNav({
   topicId,
   area,
 }: LessonNavProps) {
+  const { lang, t } = useLanguage()
   const sortedLessons = [...lessons].sort(
     (a, b) => a.lesson_order - b.lesson_order
   )
@@ -49,7 +52,7 @@ export function LessonNav({
                     <span className="text-gray-600">{index + 1}</span>
                   )}
                 </div>
-                <span className="text-sm">{lesson.title_fi}</span>
+                <span className="text-sm">{lang === 'sv' && lesson.title_sv ? lesson.title_sv : lesson.title_fi}</span>
               </div>
             </Link>
           ))}
@@ -76,7 +79,7 @@ export function LessonNav({
                     <span>{index + 1}</span>
                   )}
                 </div>
-                <span>{lesson.title_fi}</span>
+                <span>{lang === 'sv' && lesson.title_sv ? lesson.title_sv : lesson.title_fi}</span>
               </Link>
               {index < sortedLessons.length - 1 && (
                 <div className="flex-shrink-0 text-gray-300">
@@ -103,7 +106,7 @@ export function LessonNav({
       {/* Progress indicator */}
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-          <span>Edistyminen</span>
+          <span>{t('progress')}</span>
           <span className="font-semibold text-gray-900">
             {sortedLessons.filter((l) => l.completed).length}/{sortedLessons.length}
           </span>

@@ -2,17 +2,21 @@
 
 import { useState } from 'react'
 import { MathRenderer } from '@/components/shared/MathRenderer'
+import { useLanguage } from '@/lib/i18n/useLanguage'
 
 interface QuestionOption {
   label: string
   text_fi: string
+  text_sv?: string
 }
 
 interface QuestionContent {
   question_fi: string
+  question_text_sv?: string
   options: QuestionOption[]
   correct_answer: string
   explanation_fi: string
+  explanation_sv?: string
 }
 
 interface QuestionCardProps {
@@ -27,12 +31,30 @@ interface QuestionCardProps {
 const OPTION_LABELS = ['A', 'B', 'C', 'D']
 
 export function QuestionCard({ question, onAnswer }: QuestionCardProps) {
+  const { lang, t } = useLanguage()
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
   const [isAnswered, setIsAnswered] = useState(false)
   const [showExplanation, setShowExplanation] = useState(false)
 
   const correctAnswer = question.content.correct_answer
   const isCorrect = selectedAnswer === correctAnswer
+
+  const questionText = lang === 'sv' && question.content.question_text_sv
+    ? question.content.question_text_sv
+    : question.content.question_fi
+
+  const explanationText = lang === 'sv' && question.content.explanation_sv
+    ? question.content.explanation_sv
+    : question.content.explanation_fi
+
+  const getOptionText = (option: QuestionOption) => {
+    return lang === 'sv' && option.text_sv ? option.text_sv : option.text_fi
+  }
+
+  const difficultyLabels = {
+    fi: { easy: 'Helppo', medium: 'Keskitaso', hard: 'Vaikea' },
+    sv: { easy: 'Lätt', medium: 'Medel', hard: 'Svår' },
+  }
 
   const handleOptionClick = (label: string) => {
     if (isAnswered) return
@@ -74,18 +96,14 @@ export function QuestionCard({ question, onAnswer }: QuestionCardProps) {
               : 'bg-red-100 text-red-700'
           }`}
         >
-          {question.difficulty === 'easy'
-            ? 'Helppo'
-            : question.difficulty === 'medium'
-            ? 'Keskitaso'
-            : 'Vaikea'}
+          {difficultyLabels[lang][question.difficulty as 'easy' | 'medium' | 'hard'] || question.difficulty}
         </span>
       </div>
 
       {/* Question */}
       <div className="mb-8">
         <div className="text-lg font-semibold text-gray-900 mb-4">
-          <MathRenderer content={question.content.question_fi} />
+          <MathRenderer content={questionText} />
         </div>
       </div>
 
@@ -104,7 +122,7 @@ export function QuestionCard({ question, onAnswer }: QuestionCardProps) {
               </div>
               <div className="flex-grow">
                 <div className="text-left">
-                  <MathRenderer content={option.text_fi} />
+                  <MathRenderer content={getOptionText(option)} />
                 </div>
               </div>
               {isAnswered && option.label === correctAnswer && (
@@ -144,10 +162,10 @@ export function QuestionCard({ question, onAnswer }: QuestionCardProps) {
           <div
             className={`font-medium mb-2 ${isCorrect ? 'text-green-900' : 'text-blue-900'}`}
           >
-            {isCorrect ? '✓ Oikein!' : 'Selitys:'}
+            {isCorrect ? `✓ ${t('correctAnswer')}` : (lang === 'sv' ? 'Förklaring:' : 'Selitys:')}
           </div>
           <div className={`text-sm ${isCorrect ? 'text-green-800' : 'text-blue-800'}`}>
-            <MathRenderer content={question.content.explanation_fi} />
+            <MathRenderer content={explanationText} />
           </div>
         </div>
       )}
@@ -156,7 +174,7 @@ export function QuestionCard({ question, onAnswer }: QuestionCardProps) {
       <div className="flex gap-3">
         {isAnswered && !isCorrect && (
           <button className="flex-1 border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-            Kysy tuutorilta miksi
+            {t('askTutorWhy')}
           </button>
         )}
         {isAnswered && (
@@ -165,7 +183,7 @@ export function QuestionCard({ question, onAnswer }: QuestionCardProps) {
               ? 'bg-brand-600 text-white hover:bg-brand-700'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
           }`}>
-            Seuraava
+            {t('next')}
           </button>
         )}
       </div>
