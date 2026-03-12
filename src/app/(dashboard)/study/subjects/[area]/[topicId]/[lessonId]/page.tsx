@@ -117,10 +117,10 @@ export default function LessonPage() {
     if (!correct) {
       const q = questions[currentQuestionIndex]
       setTutorContext({
-        question: lang === 'sv' && q.content.question_sv ? q.content.question_sv : q.content.question_fi,
+        question: lang === 'sv' && q.content.question_text_sv ? q.content.question_text_sv : q.content.question_text,
         studentAnswer: t('wrongAnswer'),
         correctAnswer: q.content.correct_answer,
-        explanation: lang === 'sv' && q.content.explanation_sv ? q.content.explanation_sv : q.content.explanation_fi,
+        explanation: lang === 'sv' && q.content.explanation_sv ? q.content.explanation_sv : q.content.explanation,
         topicName: lang === 'sv' && topic?.name_sv ? topic.name_sv : topic?.name_fi || '',
       })
     }
@@ -178,7 +178,7 @@ export default function LessonPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Lesson Navigation */}
-      <div className="max-w-4xl mx-auto px-6 pt-6">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 pt-4 md:pt-6">
         <LessonNav
           lessons={allLessons}
           currentLessonId={lessonId}
@@ -187,7 +187,7 @@ export default function LessonPage() {
         />
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-6">
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-4 md:py-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <Link href="/study/subjects" className="hover:text-gray-700">{t('subjects')}</Link>

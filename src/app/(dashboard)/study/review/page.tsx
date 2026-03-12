@@ -101,7 +101,7 @@ export default function SpacedRepetitionPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-6 py-8">
+    <div className="max-w-lg mx-auto px-4 md:px-6 py-6 md:py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-gray-900">Kertaus</h1>
@@ -151,7 +151,7 @@ export default function SpacedRepetitionPage() {
 
       {/* Assessment buttons */}
       {state === 'back' && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <button
             onClick={() => handleAssessment('forgot')}
             className="py-3 rounded-lg bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 transition-colors"

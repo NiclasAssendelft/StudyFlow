@@ -78,7 +78,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
+    <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">Asetukset</h1>
 
       {/* Language settings */}

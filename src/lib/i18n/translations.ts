@@ -10,6 +10,7 @@ export const translations = {
     plan: 'Opiskelusuunnitelma',
     tutor: 'Tuutori',
     forum: 'Foorumi',
+    achievements: 'Saavutukset',
     settings: 'Asetukset',
     // Common
     loading: 'Ladataan...',
@@ -67,6 +68,7 @@ export const translations = {
     plan: 'Studieplan',
     tutor: 'Handledare',
     forum: 'Forum',
+    achievements: 'Prestationer',
     settings: 'Inställningar',
     // Common
     loading: 'Laddar...',

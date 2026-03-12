@@ -141,7 +141,7 @@ export default function SubjectsPage() {
   }, [lang]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">{t('subjects')}</h1>

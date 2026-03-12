@@ -63,7 +63,7 @@ export default function FeynmanPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 md:py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Feynman-tekniikka</h1>
         <p className="text-gray-600 mt-1">
@@ -167,7 +167,7 @@ export default function FeynmanPage() {
       {phase === 'feedback' && feedback && (
         <div>
           {/* Scores */}
-          <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
               { label: 'Tarkkuus', score: feedback.accuracy_score },
               { label: 'Kattavuus', score: feedback.completeness_score },

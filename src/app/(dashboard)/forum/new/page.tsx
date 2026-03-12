@@ -46,7 +46,7 @@ export default function NewThreadPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
+    <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Uusi keskustelu</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
