@@ -88,7 +88,7 @@ export default function LessonPage() {
           supabase.from('topics').select('id, name_fi, name_sv, area').eq('id', topicId).single(),
           supabase.from('lessons').select('id, title_fi, title_sv, content_fi, content_sv, video_url, video_url_sv, video_title, video_title_sv, estimated_minutes').eq('id', lessonId).single(),
           supabase.from('lessons').select('id, title_fi, title_sv, lesson_order').eq('topic_id', topicId).order('lesson_order'),
-          supabase.from('questions').select('id, content, difficulty').eq('topic_id', topicId).eq('type', 'multiple_choice'),
+          supabase.from('questions').select('id, content, difficulty').eq('topic_id', topicId).eq('type', 'mcq'),
           supabase.from('lesson_tasks').select('*').eq('lesson_id', lessonId),
         ])
 
@@ -113,6 +113,14 @@ export default function LessonPage() {
       total: prev.total + 1,
     }))
     setLastWasWrong(!correct)
+
+    if (correct) {
+      fetch('/api/gamification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'question_correct', referenceId: questions[currentQuestionIndex]?.id }),
+      })
+    }
 
     if (!correct) {
       const q = questions[currentQuestionIndex]
@@ -142,7 +150,7 @@ export default function LessonPage() {
       const { data: profile } = await supabase
         .from('student_profiles')
         .select('id')
-        .eq('user_id', userData.user.id)
+        .eq('auth_user_id', userData.user.id)
         .single()
 
       if (!profile) return
@@ -158,6 +166,13 @@ export default function LessonPage() {
         { onConflict: 'student_id,lesson_id' }
       )
 
+      // Record gamification: lesson complete
+      await fetch('/api/gamification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'lesson_complete', referenceId: lesson.id }),
+      })
+
       setCompleted(true)
     } catch (error) {
       console.error('Error marking lesson complete:', error)
@@ -166,8 +181,8 @@ export default function LessonPage() {
 
   if (loading || langLoading || !lesson || !topic || !config) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8 flex items-center justify-center">
-        <p className="text-gray-500">{t('loadingLesson')}</p>
+      <div className="min-h-screen bg-mesh p-8 flex items-center justify-center">
+        <p className="text-surface-500">{t('loadingLesson')}</p>
       </div>
     )
   }
@@ -176,7 +191,7 @@ export default function LessonPage() {
   const allAnswered = score.total >= questions.length && questions.length > 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-mesh">
       {/* Lesson Navigation */}
       <div className="max-w-4xl mx-auto px-4 md:px-6 pt-4 md:pt-6">
         <LessonNav
@@ -189,18 +204,18 @@ export default function LessonPage() {
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-4 md:py-6">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/study/subjects" className="hover:text-gray-700">{t('subjects')}</Link>
+        <div className="flex items-center gap-2 text-sm text-surface-400 mb-6">
+          <Link href="/study/subjects" className="hover:text-surface-600">{t('subjects')}</Link>
           <span>/</span>
-          <Link href={`/study/subjects/${area}`} className="hover:text-gray-700">{config[lang as 'fi' | 'sv']}</Link>
+          <Link href={`/study/subjects/${area}`} className="hover:text-surface-600">{config[lang as 'fi' | 'sv']}</Link>
           <span>/</span>
-          <Link href={`/study/subjects/${area}/${topicId}`} className="hover:text-gray-700">{lang === 'sv' && topic.name_sv ? topic.name_sv : topic.name_fi}</Link>
+          <Link href={`/study/subjects/${area}/${topicId}`} className="hover:text-surface-600">{lang === 'sv' && topic.name_sv ? topic.name_sv : topic.name_fi}</Link>
         </div>
 
         {/* Lesson Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{lang === 'sv' && lesson.title_sv ? lesson.title_sv : lesson.title_fi}</h1>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
+          <h1 className="text-3xl font-bold text-gradient mb-2">{lang === 'sv' && lesson.title_sv ? lesson.title_sv : lesson.title_fi}</h1>
+          <div className="flex items-center gap-4 text-sm text-surface-500">
             <span>{topic.id} — {lang === 'sv' && topic.name_sv ? topic.name_sv : topic.name_fi}</span>
             <span>~{lesson.estimated_minutes} {t('min')}</span>
           </div>
@@ -214,14 +229,14 @@ export default function LessonPage() {
         ) : null}
 
         {/* Lesson Content with Math */}
-        <div className="bg-white rounded-xl border p-8 mb-8">
+        <div className="glass p-8 mb-8">
           <MathRenderer content={lang === 'sv' && lesson.content_sv ? lesson.content_sv : lesson.content_fi} />
         </div>
 
         {/* Tasks Section */}
         {tasks.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <h2 className="text-xl font-semibold text-gradient mb-4">
               {t('tasks')} ({tasks.length})
             </h2>
             <div className="space-y-4">
@@ -231,7 +246,14 @@ export default function LessonPage() {
                   task={task}
                   index={index}
                   lang={lang}
-                  onCorrect={() => setTaskScore(prev => ({ ...prev, correct: prev.correct + 1, total: prev.total + 1 }))}
+                  onCorrect={() => {
+                    setTaskScore(prev => ({ ...prev, correct: prev.correct + 1, total: prev.total + 1 }))
+                    fetch('/api/gamification', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'task_correct', referenceId: task.id }),
+                    })
+                  }}
                   onWrong={(ctx) => {
                     setTaskScore(prev => ({ ...prev, total: prev.total + 1 }))
                     setTutorContext(ctx)
@@ -259,8 +281,7 @@ export default function LessonPage() {
           <div className="mb-8">
             <button
               onClick={() => setShowPractice(!showPractice)}
-              className="w-full py-3 px-6 rounded-xl font-semibold text-white transition-all flex items-center justify-between"
-              style={{ backgroundColor: config.color }}
+              className="btn-primary w-full flex items-center justify-between"
             >
               <span>{t('practice')} ({questions.length} {t('questions')})</span>
               <span>{showPractice ? '▲' : '▼'}</span>
@@ -269,12 +290,12 @@ export default function LessonPage() {
             {showPractice && (
               <div className="mt-6 space-y-6">
                 {/* Score */}
-                <div className="bg-white rounded-xl border p-4 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">{t('progress')}</span>
-                  <span className="font-bold text-gray-900">
+                <div className="card p-4 flex items-center justify-between">
+                  <span className="text-sm text-surface-600">{t('progress')}</span>
+                  <span className="font-bold text-surface-900">
                     {score.correct} / {score.total} {t('correct')}
                     {score.total > 0 && (
-                      <span className="text-sm font-normal text-gray-500 ml-2">
+                      <span className="text-sm font-normal text-surface-500 ml-2">
                         ({Math.round((score.correct / score.total) * 100)}%)
                       </span>
                     )}
@@ -284,14 +305,16 @@ export default function LessonPage() {
                 {/* Current Question */}
                 {currentQuestion && !allAnswered && (
                   <div>
-                    <div className="text-xs text-gray-500 mb-3">
+                    <div className="text-xs text-surface-500 mb-3">
                       {t('question')} {currentQuestionIndex + 1} / {questions.length}
                     </div>
-                    <QuestionCard
-                      key={currentQuestion.id}
-                      question={currentQuestion}
-                      onAnswer={handleQuestionAnswer}
-                    />
+                    <div className="card p-6">
+                      <QuestionCard
+                        key={currentQuestion.id}
+                        question={currentQuestion}
+                        onAnswer={handleQuestionAnswer}
+                      />
+                    </div>
 
                     {/* Ask Tutor + Next buttons */}
                     {score.total > currentQuestionIndex && (
@@ -299,7 +322,7 @@ export default function LessonPage() {
                         {lastWasWrong && (
                           <button
                             onClick={() => setTutorOpen(true)}
-                            className="flex-1 border-2 border-blue-300 text-blue-700 px-4 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+                            className="btn-secondary flex-1"
                           >
                             {t('askTutorWhy')}
                           </button>
@@ -307,8 +330,7 @@ export default function LessonPage() {
                         {currentQuestionIndex < questions.length - 1 && (
                           <button
                             onClick={handleNextQuestion}
-                            className="flex-1 text-white px-4 py-3 rounded-lg font-medium transition-colors"
-                            style={{ backgroundColor: config.color }}
+                            className="btn-primary flex-1"
                           >
                             {t('nextQuestion')}
                           </button>
@@ -320,7 +342,7 @@ export default function LessonPage() {
 
                 {/* All done */}
                 {allAnswered && (
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+                  <div className="card bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-200 p-6 text-center">
                     <p className="font-semibold text-green-900">
                       {t('practiceComplete')}! {score.correct}/{questions.length} {t('correct')}
                     </p>
@@ -336,9 +358,8 @@ export default function LessonPage() {
           onClick={handleMarkComplete}
           disabled={completed}
           className={`w-full py-3 px-6 rounded-xl font-semibold text-white transition-all ${
-            completed ? 'bg-green-500' : 'hover:opacity-90'
+            completed ? 'bg-green-500' : 'btn-primary'
           }`}
-          style={completed ? undefined : { backgroundColor: config.color }}
         >
           {completed ? t('completed') : t('markComplete')}
         </button>

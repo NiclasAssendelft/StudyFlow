@@ -16,10 +16,32 @@ interface AreaCard {
 
 const areaConfig: Record<string, { fi: string; sv: string; icon: string; color: string }> = {
   microeconomics: { fi: 'Mikrotaloustiede', sv: 'Mikroekonomi', icon: '📈', color: '#2563eb' },
-  macroeconomics: { fi: 'Makrotaloustiede', sv: 'Makroekonomi', icon: '🌍', color: '#7c3aed' },
+  macroeconomics: { fi: 'Makrataloustiede', sv: 'Makroekonomi', icon: '🌍', color: '#7c3aed' },
   statistics: { fi: 'Tilastotiede', sv: 'Statistik', icon: '📊', color: '#059669' },
   business: { fi: 'Liiketalous', sv: 'Företagsekonomi', icon: '💼', color: '#d97706' },
 };
+
+const colorMap: Record<string, string> = {
+  '#2563eb': 'from-blue-400 to-blue-600',
+  '#7c3aed': 'from-purple-400 to-purple-600',
+  '#059669': 'from-emerald-400 to-emerald-600',
+  '#d97706': 'from-amber-400 to-amber-600',
+};
+
+// Shimmer skeleton component
+function SkeletonCard() {
+  return (
+    <div className="card-interactive rounded-2xl p-8 h-full bg-gradient-to-br from-slate-200/50 to-slate-300/50 animate-pulse">
+      <div className="flex items-start justify-between mb-6">
+        <div className="w-16 h-16 rounded-full bg-slate-300/50"></div>
+        <div className="w-24 h-6 rounded-full bg-slate-300/50"></div>
+      </div>
+      <div className="w-3/4 h-6 rounded bg-slate-300/50 mb-4"></div>
+      <div className="w-1/2 h-4 rounded bg-slate-300/50 mb-6"></div>
+      <div className="w-full h-2 rounded-full bg-slate-300/50"></div>
+    </div>
+  );
+}
 
 export default function SubjectsPage() {
   const { lang, t, loading: langLoading } = useLanguage();
@@ -143,46 +165,69 @@ export default function SubjectsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">{t('subjects')}</h1>
-          <p className="text-lg text-slate-600">{t('selectSubjectToStart')}</p>
+        <div className="mb-12 animate-fade-in">
+          <h1 className="text-5xl font-bold mb-2 text-gradient">{t('subjects')}</h1>
+          <p className="text-lg text-surface-600">{t('selectSubjectToStart')}</p>
         </div>
 
         {loading || langLoading ? (
-          <div className="text-center py-12">
-            <p className="text-slate-600">{t('loading')}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {areas.map((area) => (
+            {areas.map((area, index) => (
               <Link key={area.slug} href={`/study/subjects/${area.slug}`}>
                 <div
-                  className="h-full rounded-lg border-2 p-8 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 bg-white"
-                  style={{ borderColor: area.color }}
+                  className="card-interactive group h-full rounded-2xl p-8 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 relative overflow-hidden animate-slide-up"
+                  style={{
+                    animationDelay: `${index * 150}ms`,
+                  }}
                 >
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="text-5xl">{area.icon}</div>
-                    <span
-                      className="text-sm font-semibold px-3 py-1 rounded-full text-white"
-                      style={{ backgroundColor: area.color }}
-                    >
-                      {t('progress')}: {area.progress}%
-                    </span>
-                  </div>
+                  {/* Gradient overlay on hover */}
+                  <div
+                    className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-br ${colorMap[area.color]}`}
+                  ></div>
 
-                  <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                    {area.label}
-                  </h2>
-                  <p className="text-slate-600 mb-6">{area.topicCount} {t('topics')}</p>
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-6">
+                      {/* Icon in colored circle */}
+                      <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-lg"
+                        style={{
+                          backgroundColor: area.color,
+                          boxShadow: `0 8px 24px ${area.color}40`,
+                        }}
+                      >
+                        {area.icon}
+                      </div>
+                      <div
+                        className="chip-brand text-white text-sm font-semibold"
+                        style={{ backgroundColor: area.color }}
+                      >
+                        {area.progress}%
+                      </div>
+                    </div>
 
-                  <div className="w-full bg-slate-200 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${area.progress}%`,
-                        backgroundColor: area.color,
-                      }}
-                    />
+                    <h2 className="text-2xl font-bold text-surface-900 mb-1">
+                      {area.label}
+                    </h2>
+                    <p className="text-surface-600 mb-6">{area.topicCount} {t('topics')}</p>
+
+                    {/* Progress bar */}
+                    <div className="space-y-2">
+                      <div className="progress-bar">
+                        <div
+                          className="progress-fill transition-all duration-500"
+                          style={{
+                            width: `${area.progress}%`,
+                            backgroundColor: area.color,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Link>

@@ -79,11 +79,13 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Asetukset</h1>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-gradient mb-2">{t('settings')}</h1>
+      </div>
 
       {/* Language settings */}
-      <section className="bg-white border rounded-xl p-6 mb-6">
-        <h2 className="font-semibold text-lg mb-4">Kieli / Språk</h2>
+      <section className="card rounded-2xl p-6 mb-6">
+        <h2 className="font-semibold text-lg text-surface-900 mb-4">Kieli / Språk</h2>
         <div className="flex gap-4">
           {[
             { value: 'fi', label: 'Suomi', flag: '🇫🇮' },
@@ -92,25 +94,25 @@ export default function SettingsPage() {
             <button
               key={opt.value}
               onClick={() => setLanguage(opt.value)}
-              className={`flex-1 p-4 rounded-lg border-2 transition-colors text-center ${
+              className={`flex-1 p-4 rounded-xl transition-all duration-200 text-center ${
                 language === opt.value
-                  ? 'border-brand-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'glass border border-brand-500 bg-brand-50/50 shadow-lg'
+                  : 'glass-subtle border border-surface-200/60 hover:border-surface-300/80'
               }`}
             >
               <span className="text-3xl block mb-1">{opt.flag}</span>
-              <span className="font-medium text-sm">{opt.label}</span>
+              <span className="font-medium text-sm text-surface-900">{opt.label}</span>
             </button>
           ))}
         </div>
       </section>
 
       {/* Visibility settings */}
-      <section className="bg-white border rounded-xl p-6 mb-6">
-        <h2 className="font-semibold text-lg mb-4">Näkyvyys</h2>
+      <section className="card rounded-2xl p-6 mb-6">
+        <h2 className="font-semibold text-lg text-surface-900 mb-4">Näkyvyys</h2>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="text-sm text-gray-700">Näytä Pomodoro-ajastin</label>
+            <label className="text-sm text-surface-700">Näytä Pomodoro-ajastin</label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -118,11 +120,11 @@ export default function SettingsPage() {
                 onChange={(e) => setShowPomodoro(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+              <div className="w-11 h-6 bg-surface-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
             </label>
           </div>
           <div className="flex items-center justify-between">
-            <label className="text-sm text-gray-700">Näytä Feynman-tekniikka</label>
+            <label className="text-sm text-surface-700">Näytä Feynman-tekniikka</label>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
@@ -130,15 +132,15 @@ export default function SettingsPage() {
                 onChange={(e) => setShowFeynman(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+              <div className="w-11 h-6 bg-surface-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
             </label>
           </div>
         </div>
       </section>
 
       {/* Tutor intensity settings */}
-      <section className="bg-white border rounded-xl p-6 mb-6">
-        <h2 className="font-semibold text-lg mb-4">Tuutorin tyyli</h2>
+      <section className="card rounded-2xl p-6 mb-6">
+        <h2 className="font-semibold text-lg text-surface-900 mb-4">Tuutorin tyyli</h2>
         <div className="space-y-3">
           {[
             { value: 'strict', label: 'Tiukka', desc: 'Vaativa mentori, haastaa oletuksiasi, odottaa tarkkuutta', icon: '🎯' },
@@ -148,17 +150,17 @@ export default function SettingsPage() {
             <button
               key={opt.value}
               onClick={() => setTutorIntensity(opt.value)}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-colors ${
+              className={`w-full text-left p-4 rounded-xl transition-all duration-200 ${
                 tutorIntensity === opt.value
-                  ? 'border-brand-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'glass border border-brand-500 bg-brand-50/50 shadow-lg'
+                  : 'glass-subtle border border-surface-200/60 hover:border-surface-300/80'
               }`}
             >
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{opt.icon}</span>
                 <div>
-                  <div className="font-medium text-sm">{opt.label}</div>
-                  <div className="text-xs text-gray-500">{opt.desc}</div>
+                  <div className="font-medium text-sm text-surface-900">{opt.label}</div>
+                  <div className="text-xs text-surface-500">{opt.desc}</div>
                 </div>
               </div>
             </button>
@@ -167,13 +169,13 @@ export default function SettingsPage() {
       </section>
 
       {/* Pomodoro settings */}
-      <section className="bg-white border rounded-xl p-6 mb-6">
-        <h2 className="font-semibold text-lg mb-4">Pomodoro-ajastin</h2>
+      <section className="card rounded-2xl p-6 mb-6">
+        <h2 className="font-semibold text-lg text-surface-900 mb-4">Pomodoro-ajastin</h2>
         <div className="space-y-4">
           <div>
             <label className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-700">Keskittymisaika</span>
-              <span className="font-medium">{pomodoroFocus} min</span>
+              <span className="text-sm text-surface-700">Keskittymisaika</span>
+              <span className="font-medium text-surface-900">{pomodoroFocus} min</span>
             </label>
             <input
               type="range"
@@ -182,13 +184,13 @@ export default function SettingsPage() {
               step={5}
               value={pomodoroFocus}
               onChange={(e) => setPomodoroFocus(Number(e.target.value))}
-              className="w-full accent-brand-600"
+              className="w-full accent-brand-500"
             />
           </div>
           <div>
             <label className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-700">Tauon pituus</span>
-              <span className="font-medium">{pomodoroBreak} min</span>
+              <span className="text-sm text-surface-700">Tauon pituus</span>
+              <span className="font-medium text-surface-900">{pomodoroBreak} min</span>
             </label>
             <input
               type="range"
@@ -196,13 +198,13 @@ export default function SettingsPage() {
               max={15}
               value={pomodoroBreak}
               onChange={(e) => setPomodoroBreak(Number(e.target.value))}
-              className="w-full accent-brand-600"
+              className="w-full accent-brand-500"
             />
           </div>
           <div>
             <label className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-700">Pitkä tauko</span>
-              <span className="font-medium">{pomodoroLongBreak} min</span>
+              <span className="text-sm text-surface-700">Pitkä tauko</span>
+              <span className="font-medium text-surface-900">{pomodoroLongBreak} min</span>
             </label>
             <input
               type="range"
@@ -211,20 +213,20 @@ export default function SettingsPage() {
               step={5}
               value={pomodoroLongBreak}
               onChange={(e) => setPomodoroLongBreak(Number(e.target.value))}
-              className="w-full accent-brand-600"
+              className="w-full accent-brand-500"
             />
           </div>
         </div>
       </section>
 
       {/* Study settings */}
-      <section className="bg-white border rounded-xl p-6 mb-6">
-        <h2 className="font-semibold text-lg mb-4">Opiskelu</h2>
+      <section className="card rounded-2xl p-6 mb-6">
+        <h2 className="font-semibold text-lg text-surface-900 mb-4">Opiskelu</h2>
         <div className="space-y-4">
           <div>
             <label className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-700">Tavoitepistemäärä</span>
-              <span className="font-medium">{targetScore}%</span>
+              <span className="text-sm text-surface-700">Tavoitepistemäärä</span>
+              <span className="font-medium text-surface-900">{targetScore}%</span>
             </label>
             <input
               type="range"
@@ -232,13 +234,13 @@ export default function SettingsPage() {
               max={100}
               value={targetScore}
               onChange={(e) => setTargetScore(Number(e.target.value))}
-              className="w-full accent-brand-600"
+              className="w-full accent-brand-500"
             />
           </div>
           <div>
             <label className="flex items-center justify-between mb-1">
-              <span className="text-sm text-gray-700">Tuntia viikossa</span>
-              <span className="font-medium">{hoursPerWeek}h</span>
+              <span className="text-sm text-surface-700">Tuntia viikossa</span>
+              <span className="font-medium text-surface-900">{hoursPerWeek}h</span>
             </label>
             <input
               type="range"
@@ -246,20 +248,27 @@ export default function SettingsPage() {
               max={40}
               value={hoursPerWeek}
               onChange={(e) => setHoursPerWeek(Number(e.target.value))}
-              className="w-full accent-brand-600"
+              className="w-full accent-brand-500"
             />
           </div>
         </div>
       </section>
 
-      {/* Save */}
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="bg-brand-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50"
-      >
-        {saving ? t('saving') : saved ? t('saved') : t('save')}
-      </button>
+      {/* Save button and feedback */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="btn-primary"
+        >
+          {saving ? t('saving') : saved ? t('saved') : t('save')}
+        </button>
+        {saved && (
+          <div className="chip-brand bg-emerald-500/20 text-emerald-700 border border-emerald-200/50 animate-slide-up">
+            ✓ {t('saved')}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

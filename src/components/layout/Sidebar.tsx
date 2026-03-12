@@ -86,7 +86,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       <aside
         className={cn(
           // Base styles
-          'fixed left-0 top-0 h-screen bg-white border-r flex flex-col z-50 transition-all duration-200',
+          'fixed left-0 top-0 h-screen bg-white/80 backdrop-blur-xl border-r border-surface-200/60 flex flex-col z-50 transition-all duration-200',
           // Mobile: slide in/out
           'max-md:-translate-x-full max-md:w-64',
           mobileOpen && 'max-md:translate-x-0',
@@ -96,16 +96,16 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         )}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-4 py-4 border-b">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-surface-200/40">
           {!collapsed && (
-            <Link href="/dashboard" className="text-lg font-bold text-brand-700">
+            <Link href="/dashboard" className="text-lg font-bold text-gradient">
               StudyFlow
             </Link>
           )}
           {/* Desktop collapse button */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="text-gray-400 hover:text-gray-600 p-1 hidden md:block"
+            className="text-surface-400 hover:text-surface-600 p-1 hidden md:block transition-colors"
             aria-label={collapsed ? 'Laajenna' : 'Pienennä'}
           >
             {collapsed ? '→' : '←'}
@@ -113,7 +113,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           {/* Mobile close button */}
           <button
             onClick={onMobileClose}
-            className="text-gray-400 hover:text-gray-600 p-1 md:hidden"
+            className="text-surface-400 hover:text-surface-600 p-1 md:hidden transition-colors"
             aria-label="Sulje"
           >
             ✕
@@ -131,10 +131,10 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm transition-colors',
+                  'flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm transition-all duration-150 relative',
                   isActive
-                    ? 'bg-blue-50 text-brand-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-gradient-to-r from-brand-50 to-brand-100/50 text-brand-700 font-medium before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-brand-600 before:rounded-r-lg'
+                    : 'text-surface-500 hover:bg-surface-50 hover:text-surface-800'
                 )}
                 title={collapsed ? t(item.labelKey) : undefined}
               >
@@ -146,10 +146,10 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         </nav>
 
         {/* Bottom */}
-        <div className="border-t p-3 space-y-1">
+        <div className="border-t border-surface-200/40 p-3 space-y-1">
           <button
             onClick={() => setLang(lang === 'fi' ? 'sv' : 'fi')}
-            className="flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 w-full"
+            className="flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-surface-600 hover:bg-surface-50 hover:text-surface-900 w-full transition-all duration-150"
             title={lang === 'fi' ? 'Byt till svenska' : 'Vaihda suomeksi'}
           >
             <span className="text-lg">{lang === 'fi' ? '🇫🇮' : '🇸🇪'}</span>
@@ -162,8 +162,10 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
           <Link
             href="/settings"
             className={cn(
-              'flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50',
-              pathname === '/settings' && 'bg-blue-50 text-brand-700'
+              'flex items-center gap-3 px-2 py-2 rounded-lg text-sm transition-all duration-150',
+              pathname === '/settings'
+                ? 'bg-gradient-to-r from-brand-50 to-brand-100/50 text-brand-700 font-medium'
+                : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
             )}
           >
             <span className="text-lg">⚙️</span>
@@ -175,7 +177,7 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
               await supabase.auth.signOut()
               window.location.href = '/login'
             }}
-            className="flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 w-full"
+            className="flex items-center gap-3 px-2 py-2 rounded-lg text-sm text-surface-600 hover:bg-red-50/80 hover:text-red-600 w-full transition-all duration-150"
           >
             <span className="text-lg">🚪</span>
             {(!collapsed || mobileOpen) && (
